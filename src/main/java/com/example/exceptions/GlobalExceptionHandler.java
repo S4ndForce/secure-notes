@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
-
+/*
     @ExceptionHandler(TodoNotFound.class)
     public ResponseEntity<?> handleNotFound(TodoNotFound ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -19,4 +19,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ErrorResponse("Something went wrong"));
     }
+
+ */
 }
