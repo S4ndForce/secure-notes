@@ -33,4 +33,8 @@ public class Note {
     public String getContent() {
         return content;
     }
+
+    public boolean isOwnedBy(User user) {
+        return this.owner.equals(user);
+    }
 }
