@@ -16,14 +16,14 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/register").permitAll()
+                        .requestMatchers("/auth/register", "/auth/login").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(
                         new JwtAuthenticationFilter(),
                         UsernamePasswordAuthenticationFilter.class
                 )
-                .httpBasic(basic -> {})   // Temporary basic auth
+                .httpBasic(basic -> basic.disable())
                 .formLogin(form -> form.disable());
 
         return http.build();
@@ -35,4 +35,5 @@ public class SecurityConfig {
     ) throws Exception {
         return config.getAuthenticationManager();
     }
+
 }

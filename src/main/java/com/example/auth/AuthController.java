@@ -36,4 +36,5 @@ public class AuthController {
         );
         return JwtUtil.generateToken(request.email);
     }
+
 }
