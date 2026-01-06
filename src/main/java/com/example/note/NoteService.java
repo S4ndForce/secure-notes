@@ -17,12 +17,14 @@ public class NoteService {
         this.currentUser = currentUser;
     }
 
-    public Note create(String content, Authentication auth) {
+    public NoteResponse create(String content, Authentication auth) {
         User user = currentUser.get(auth);
-        return noteRepository.save(new Note(content, user));
+        Note note = new Note(content, user);
+        noteRepository.save(note);
+        return NoteResponse.fromEntity(note);
     }
 
-    public Note getById(Long id, Authentication auth) {
+    public NoteResponse getById(Long id, Authentication auth) {
         User user = currentUser.get(auth);
         Note note = noteRepository.findById(id).orElseThrow();
 
@@ -30,6 +32,6 @@ public class NoteService {
             throw new RuntimeException("Forbidden");
         }
 
-        return note;
+        return NoteResponse.fromEntity(note);
     }
 }

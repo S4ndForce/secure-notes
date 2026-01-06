@@ -1,6 +1,6 @@
-@JWT_A =eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhQHRlc3QuY29tIiwiaWF0IjoxNzY3NjYzMDU4LCJleHAiOjE3Njc2NjY2NTh9.dCihA-ejX8yekUirx3wjQpNBfnYCvo2PcR8MUOFZJuY
+@JWT_A =eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhQHRlc3QuY29tIiwiaWF0IjoxNzY3NzAyNjI0LCJleHAiOjE3Njc3MDYyMjR9.8mVnpHB4SkFF000Vhcy61Q6oD07jgplGhdHgBocdVsQ
 @NOTE_ID = 1
-@JWT_B = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJiQHRlc3QuY29tIiwiaWF0IjoxNzY3NjYzMjE4LCJleHAiOjE3Njc2NjY4MTh9.6HMMm3BTwZqc9TpKBwuZKU4bKT7YIeLyOnyrxh84MEs
+@JWT_B = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJiQHRlc3QuY29tIiwiaWF0IjoxNzY3NzAxODk1LCJleHAiOjE3Njc3MDU0OTV9.xAAc-X3w-orUXnYw7MUp7WVlPWBZRzImoj8rxFgBt_s
 ### Register User A
 POST http://localhost:8081/auth/register
 Content-Type: application/json
@@ -48,6 +48,6 @@ Content-Type: application/json
   "password": "password"
 }
 
-### Ownership test (User B tries User A's note)
+### Ownership test
 GET http://localhost:8081/notes/{{NOTE_ID}}
 Authorization: Bearer {{JWT_A}}

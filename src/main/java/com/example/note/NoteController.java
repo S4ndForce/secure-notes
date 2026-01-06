@@ -14,12 +14,12 @@ public class NoteController {
     }
 
     @PostMapping
-    public Note create(@RequestBody String content, Authentication auth) {
+    public NoteResponse create(@RequestBody String content, Authentication auth) {
         return noteService.create(content, auth);
     }
 
     @GetMapping("/{id}")
-    public Note get(@PathVariable Long id, Authentication auth) {
+    public NoteResponse get(@PathVariable Long id, Authentication auth) {
         return noteService.getById(id, auth);
     }
 }
