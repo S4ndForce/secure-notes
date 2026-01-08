@@ -18,8 +18,12 @@ public class NoteController {
     }
 
     @PostMapping
-    public NoteResponse create(@RequestBody String content, Authentication auth) {
-        return noteService.create(content, auth);
+    public NoteResponse create(
+            @RequestParam Long folderId,
+            @RequestBody String content,
+            Authentication auth
+    ) {
+        return noteService.create(folderId, content, auth);
     }
 
     @GetMapping("/{id}")
@@ -49,6 +53,14 @@ public class NoteController {
             Authentication auth
     ) {
          noteService.delete(id, auth);
+    }
+
+    @GetMapping("/folder/{folderId}")
+    public List<NoteResponse> getByFolder(
+            @PathVariable Long folderId,
+            Authentication auth
+    ) {
+        return noteService.getByFolder(folderId, auth);
     }
 
 }

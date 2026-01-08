@@ -1,5 +1,6 @@
 package com.example.note;
 
+import com.example.folder.Folder;
 import com.example.user.User;
 import jakarta.persistence.*;
 
@@ -15,7 +16,16 @@ public class Note {
     @ManyToOne(optional = false)
     private User owner;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    private Folder folder;
+
     protected Note() {}
+
+    public Note(String content, User owner, Folder folder) {
+        this.content = content;
+        this.owner = owner;
+        this.folder = folder;
+    }
 
     public Note(String content, User owner) {
         this.content = content;
@@ -40,5 +50,9 @@ public class Note {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public Folder getFolder() {
+        return folder;
     }
 }

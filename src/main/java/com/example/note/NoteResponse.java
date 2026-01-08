@@ -14,10 +14,13 @@ public class NoteResponse {
 
     private String userName;
 
-    public NoteResponse(Long id, String content, String userName){
+    private Long folderId;
+
+    public NoteResponse(Long id, String content, String userName, Long folderId){
         this.content = content;
         this.userName = userName;
         this.id =  id;
+        this.folderId = folderId;
     }
     public Long getId() {
         return id;
@@ -47,7 +50,8 @@ public class NoteResponse {
         return new NoteResponse(
                 note.getId(),
                 note.getContent(),
-                note.getOwner().getEmail()
+                note.getOwner().getEmail(),
+                note.getFolder().getId()
         );
 
 
