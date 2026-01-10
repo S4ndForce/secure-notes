@@ -8,6 +8,7 @@ import com.example.shared.SharedLink;
 import com.example.shared.SharedLinkRepository;
 import com.example.user.User;
 import com.example.auth.CurrentUser;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -132,6 +133,30 @@ public class NoteService {
         noteRepository.save(note);
 
         return token;
+    }
+
+    public List<NoteResponse> searchMyNotes(
+            String text,
+            Long folderId,
+            Authentication auth
+    ) {
+        User user = currentUser.get(auth);
+
+        Specification<Note> spec = Specification.allOf(NoteSpecs.belongsTo(user));
+
+        if (text != null && !text.isBlank()) {
+            spec = spec.and(NoteSpecs.contentContains(text));
+        }
+
+        if (folderId != null) {
+            spec = spec.and(NoteSpecs.inFolder(folderId));
+        }
+
+        List<Note> notes = noteRepository.findAll(spec);
+
+        return notes.stream()
+                .map(NoteResponse::fromEntity)
+                .toList();
     }
 
 

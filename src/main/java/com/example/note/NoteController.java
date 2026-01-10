@@ -67,4 +67,13 @@ public class NoteController {
     public String share(@PathVariable Long id, Authentication auth) {
         return noteService.createSharedLink(id, auth);
     }
+
+    @GetMapping("/search")
+    public List<NoteResponse> searchMyNotes(
+            @RequestParam(required = false) String text,
+            @RequestParam(required = false) Long folderId,
+            Authentication auth
+    ) {
+        return noteService.searchMyNotes(text, folderId, auth);
+    }
 }
