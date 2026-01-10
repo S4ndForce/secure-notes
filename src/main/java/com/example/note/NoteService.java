@@ -4,6 +4,7 @@ import com.example.exceptions.ForbiddenException;
 import com.example.exceptions.NotFoundException;
 import com.example.folder.Folder;
 import com.example.folder.FolderRepository;
+import com.example.folder.FolderSpecs;
 import com.example.shared.SharedLink;
 import com.example.shared.SharedLinkRepository;
 import com.example.user.User;
@@ -65,6 +66,32 @@ public class NoteService {
         return NoteResponse.fromEntity(note);
     }
 
+    public List<NoteResponse> getByFolder(Long folderId, Authentication auth) {
+        User user = currentUser.get(auth);
+
+        boolean exists = folderRepository.existsById(folderId);
+        if (!exists) {
+            throw new NotFoundException("Folder not found");
+        }
+
+        Specification<Folder> folderSpec = Specification
+                .allOf(FolderSpecs.withId(folderId))
+                .and(FolderSpecs.belongsTo(user));
+
+        Folder folder = folderRepository.findOne(folderSpec)
+                .orElseThrow(() -> new ForbiddenException("Not your folder"));
+
+        Specification<Note> noteSpec = Specification
+                .allOf(NoteSpecs.belongsTo(user))
+                .and(NoteSpecs.inFolder(folderId));
+
+        List<Note> notes = noteRepository.findAll(noteSpec);
+
+        return notes.stream()
+                .map(NoteResponse::fromEntity)
+                .toList();
+    }
+
     public List<NoteResponse> getMyNotes(Authentication auth) {
         User user = currentUser.get(auth);
 
@@ -114,21 +141,7 @@ public class NoteService {
         noteRepository.delete(note);
     }
 
-    public List<NoteResponse> getByFolder(Long folderId, Authentication auth) {
-        User user = currentUser.get(auth);
 
-        Folder folder = folderRepository.findById(folderId)
-                .orElseThrow(() -> new NotFoundException("Folder not found"));
-
-        if (!folder.isOwnedBy(user)) {
-            throw new ForbiddenException("Not your folder");
-        }
-
-        return noteRepository.findByFolder(folder)
-                .stream()
-                .map(NoteResponse::fromEntity)
-                .toList();
-    }
 
     public String createSharedLink(Long id, Authentication auth) {
         User user = currentUser.get(auth);
@@ -176,6 +189,8 @@ public class NoteService {
                 .map(NoteResponse::fromEntity)
                 .toList();
     }
+
+
 
 
 
