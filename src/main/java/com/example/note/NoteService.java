@@ -5,8 +5,10 @@ import com.example.exceptions.NotFoundException;
 import com.example.folder.Folder;
 import com.example.folder.FolderRepository;
 import com.example.folder.FolderSpecs;
+import com.example.shared.SharedAction;
 import com.example.shared.SharedLink;
 import com.example.shared.SharedLinkRepository;
+import com.example.shared.SharedLinkService;
 import com.example.user.User;
 import com.example.auth.CurrentUser;
 import org.springframework.data.jpa.domain.Specification;
@@ -14,7 +16,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.UUID;
+import java.util.Set;
+
 
 @Service
 public class NoteService {
@@ -22,16 +25,20 @@ public class NoteService {
     private final NoteRepository noteRepository;
     private final CurrentUser currentUser;
     private final FolderRepository folderRepository;
-    private final SharedLinkRepository sharedLinkRepository;
+    private final SharedLinkService sharedLinkService;
 
     public NoteService(NoteRepository noteRepository,
                        CurrentUser currentUser,
                        FolderRepository folderRepository,
-                       SharedLinkRepository sharedLinkRepository) {
+                       SharedLinkService sharedLinkService) {
         this.noteRepository = noteRepository;
         this.currentUser = currentUser;
         this.folderRepository = folderRepository;
-        this.sharedLinkRepository = sharedLinkRepository;
+        this.sharedLinkService = sharedLinkService;
+    }
+
+    private Specification<Note> ownedNote(Long id, User user) {
+        return Specification.allOf(NoteSpecs.withId(id)).and(NoteSpecs.belongsTo(user));
     }
 
     public NoteResponse create(Long folderId, String content, Authentication auth) {
@@ -150,20 +157,21 @@ public class NoteService {
             throw new NotFoundException("Note not found");
         }
 
-        Specification<Note> spec = Specification
-                .allOf(NoteSpecs.withId(id))
-                .and(NoteSpecs.belongsTo(user));
+        Specification<Note> spec = ownedNote(id, user);
 
         Note note = noteRepository.findOne(spec)
                 .orElseThrow(() -> new ForbiddenException("Not your note"));
 
         note.setVisibility(Visibility.SHARED_LINK);
-
-        String token = UUID.randomUUID().toString();
-        sharedLinkRepository.save(new SharedLink(token, note));
         noteRepository.save(note);
 
-        return token;
+        SharedLink link = sharedLinkService.create(
+                note,
+                Set.of(SharedAction.READ),
+                null
+        );
+
+        return link.getToken();
     }
 
     public List<NoteResponse> searchMyNotes(

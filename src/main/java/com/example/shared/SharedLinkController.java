@@ -10,16 +10,16 @@ import org.springframework.web.bind.annotation.*;
 public class SharedLinkController {
 
     private final SharedLinkRepository sharedLinkRepository;
+    private final SharedLinkService sharedLinkService;
 
-    public SharedLinkController(SharedLinkRepository sharedLinkRepository) {
+    public SharedLinkController(SharedLinkRepository sharedLinkRepository, SharedLinkService sharedLinkService) {
         this.sharedLinkRepository = sharedLinkRepository;
+        this.sharedLinkService = sharedLinkService;
     }
 
     @GetMapping("/{token}")
     public NoteResponse getShared(@PathVariable String token) {
-        SharedLink link = sharedLinkRepository.findByToken(token)
-                .orElseThrow(() -> new NotFoundException("Invalid link"));
-
+        SharedLink link = sharedLinkService.validate(token, SharedAction.READ);
         Note note = link.getNote();
         return NoteResponse.fromEntity(note);
     }
