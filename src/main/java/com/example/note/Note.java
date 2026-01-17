@@ -1,10 +1,13 @@
 package com.example.note;
 
 import com.example.folder.Folder;
+import com.example.tag.Tag;
 import com.example.user.User;
 import jakarta.persistence.*;
 
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 public class Note {
@@ -26,6 +29,14 @@ public class Note {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private Folder folder;
+
+    @ManyToMany
+    @JoinTable(
+            name = "note_tags",
+            joinColumns = @JoinColumn(name = "note_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private Set<Tag> tags = new HashSet<>();
 
     protected Note() {}
 
@@ -78,5 +89,13 @@ public class Note {
 
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Set<Tag> getTags() {
+        return tags;
+    }
+
+    public void setTags(Set<Tag> tags) {
+        this.tags = tags;
     }
 }

@@ -59,6 +59,7 @@ public class NoteResponse {
                 note.getContent(),
                 note.getOwner().getEmail(),
                 note.getFolder().getId()
+
         );
 
 

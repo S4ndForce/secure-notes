@@ -1,6 +1,9 @@
 package com.example.note;
 
+import com.example.tag.Tag;
 import com.example.user.User;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import org.springframework.data.jpa.domain.Specification;
 
 public class NoteSpecs {
@@ -26,6 +29,12 @@ public class NoteSpecs {
                 cb.like(cb.lower(root.get("content")), "%" + text.toLowerCase() + "%");
     }
 
+    public static Specification<Note> hasTag(String name) {
+        return (root, query, cb) -> {
+            Join<Note, Tag> tags = root.join("tags", JoinType.INNER);
+            return cb.equal(tags.get("name"), name);
+        };
+    }
 
 
 

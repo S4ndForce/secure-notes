@@ -8,8 +8,11 @@ import com.example.folder.FolderSpecs;
 import com.example.shared.SharedAction;
 import com.example.shared.SharedLink;
 import com.example.shared.SharedLinkService;
+import com.example.tag.Tag;
+import com.example.tag.TagRepository;
 import com.example.user.User;
 import com.example.auth.CurrentUser;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -19,6 +22,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -28,15 +32,18 @@ public class NoteService {
     private final CurrentUser currentUser;
     private final FolderRepository folderRepository;
     private final SharedLinkService sharedLinkService;
+    private final TagRepository tagRepository;
 
     public NoteService(NoteRepository noteRepository,
                        CurrentUser currentUser,
                        FolderRepository folderRepository,
-                       SharedLinkService sharedLinkService) {
+                       SharedLinkService sharedLinkService,
+                       TagRepository tagRepository) {
         this.noteRepository = noteRepository;
         this.currentUser = currentUser;
         this.folderRepository = folderRepository;
         this.sharedLinkService = sharedLinkService;
+        this.tagRepository = tagRepository;
     }
     // Helper methods
     private Specification<Note> ownedNote(Long id, User user) {
@@ -54,7 +61,6 @@ public class NoteService {
         if (!folder.isOwnedBy(user)) {
             throw new ForbiddenException("Not your folder");
         }
-
 
         Note note = new Note(content, user, folder);
         Instant now = Instant.now();
@@ -187,6 +193,7 @@ public class NoteService {
             String text,
             Long folderId,
             Pageable pageable,
+            String tagName,
             Authentication auth
     ) {
         User user = currentUser.get(auth);
@@ -201,8 +208,13 @@ public class NoteService {
             spec = spec.and(NoteSpecs.inFolder(folderId));
         }
 
+        if (tagName != null && !tagName.isBlank()) {
+            spec = spec.and(NoteSpecs.hasTag(tagName));
+        }
+
         Page<Note> notes = noteRepository.findAll(spec, pageable);
-        var content = notes.map(NoteResponse::fromEntity).toList();
+        var content = notes.map(NoteResponse::fromEntity).toList()
+                ;
 
         return new PageResponse<NoteResponse>(
                 content,
@@ -213,7 +225,37 @@ public class NoteService {
         );
     }
 
+    @Transactional
+    public NoteResponse addTags(Long noteId, Set<String> names, Authentication auth) {
+        User user = currentUser.get(auth);
 
+        Specification<Note> spec = ownedNote(noteId, user);
+        Note note = noteRepository.findOne(spec).orElseThrow(() -> new ForbiddenException("Not your note"));
+
+        Set<Tag> tagSet = names.stream()
+                .map(n -> tagRepository.findByName(n).orElseGet(() -> tagRepository.save(new Tag(n))))
+                .collect(Collectors.toSet());
+
+        note.getTags().addAll(tagSet);
+        note.setUpdatedAt(Instant.now());
+        noteRepository.save(note);
+
+        return NoteResponse.fromEntity(note);
+    }
+
+    @Transactional
+    public NoteResponse removeTag(Long noteId, String name, Authentication auth) {
+        User user = currentUser.get(auth);
+
+        Specification<Note> spec = ownedNote(noteId, user);
+        Note note = noteRepository.findOne(spec).orElseThrow(() -> new ForbiddenException("Not your note"));
+
+        tagRepository.findByName(name).ifPresent(t -> note.getTags().remove(t));
+        note.setUpdatedAt(Instant.now());
+        noteRepository.save(note);
+
+        return NoteResponse.fromEntity(note);
+    }
 
 
 

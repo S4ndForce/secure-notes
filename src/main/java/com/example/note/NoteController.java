@@ -1,13 +1,15 @@
 package com.example.note;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.PatchMapping;
 
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/notes")
@@ -70,12 +72,32 @@ public class NoteController {
     }
 
     @GetMapping("/search")
-    public Page<NoteResponse> search(
+    public PageResponse<NoteResponse> search(
             @RequestParam(required = false) String text,
             @RequestParam(required = false) Long folderId,
+            @RequestParam(required = false) String tagName,
+            @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC)
             Pageable pageable,
             Authentication auth
     ) {
-        return noteService.searchMyNotes(text, folderId, pageable, auth);
+        return noteService.searchMyNotes(text, folderId, pageable, tagName, auth);
+    }
+
+    @PostMapping("/{id}/tags")
+    public NoteResponse addTags(
+            @PathVariable Long id,
+            @RequestBody Set<String> tags,
+            Authentication auth
+    ) {
+        return noteService.addTags(id, tags, auth);
+    }
+
+    @DeleteMapping("/{id}/tags/{name}")
+    public NoteResponse removeTag(
+            @PathVariable Long id,
+            @PathVariable String name,
+            Authentication auth
+    ) {
+        return noteService.removeTag(id, name, auth);
     }
 }
