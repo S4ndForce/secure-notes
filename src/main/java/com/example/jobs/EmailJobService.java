@@ -1,5 +1,6 @@
 package com.example.jobs;
 
+import com.example.email.EmailClient;
 import com.example.idempotency.IdempotencyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,10 +16,11 @@ import java.util.UUID;
 public class EmailJobService {
 
     private static final Logger log = LoggerFactory.getLogger("JOBS");
-
+    private final EmailClient emailClient;
     private final IdempotencyService idempotencyService;
 
-    public EmailJobService(IdempotencyService idempotencyService) {
+    public EmailJobService(EmailClient emailClient, IdempotencyService idempotencyService) {
+        this.emailClient = emailClient;
         this.idempotencyService = idempotencyService;
     }
 
@@ -50,19 +52,14 @@ public class EmailJobService {
         log.info("Sending welcome email userId={} email={}", email);
 
         // Simulate email send
-        simulateSend(email);
+        emailClient.sendWelcomeEmail(email);
 
         idempotencyService.markCompleted(actionKey);
 
         log.info("Welcome email completed userId={}", email);
     }
 
-    private void simulateSend(String email) {
-        // replace with real email client
-        if (Math.random() < 0.3) {
-            throw new RuntimeException("Transient mail failure");
-        }
-    }
+
 
     @Recover
     public void recover(RuntimeException e, UUID userId, String email) {

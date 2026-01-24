@@ -29,7 +29,7 @@ public class SharedLinkCleanupJob {
     @Scheduled(fixedDelay = 60_000) // every 60s
     @Retryable(
             retryFor = { TransientDataAccessException.class, SQLException.class },
-            noRetryFor = { IllegalArgumentException.class },
+            noRetryFor = { IllegalArgumentException.class,  org.springframework.jdbc.BadSqlGrammarException.class },
             maxAttempts = 5,
             backoff = @Backoff(
             delay = 1000,

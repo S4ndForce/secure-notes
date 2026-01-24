@@ -13,6 +13,7 @@ spring:
       hibernate:
         format_sql: true
 
+
 server:
   port: 8081
 
@@ -24,3 +25,4 @@ jwt:
     level:
       org.hibernate.SQL: DEBUG
       org.hibernate.orm.jdbc.bind: TRACE
+
