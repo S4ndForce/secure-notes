@@ -1,5 +1,7 @@
 package com.example.note;
 
+import com.example.auth.OwnerAction;
+import com.example.auth.OwnerAuthorization;
 import com.example.exceptions.ForbiddenException;
 import com.example.exceptions.NotFoundException;
 import com.example.folder.Folder;
@@ -33,19 +35,23 @@ public class NoteService {
     private final FolderRepository folderRepository;
     private final SharedLinkService sharedLinkService;
     private final TagRepository tagRepository;
+    private final OwnerAuthorization ownedAuth;
 
     public NoteService(NoteRepository noteRepository,
                        CurrentUser currentUser,
                        FolderRepository folderRepository,
                        SharedLinkService sharedLinkService,
-                       TagRepository tagRepository) {
+                       TagRepository tagRepository, OwnerAuthorization ownedAuth
+                       ) {
         this.noteRepository = noteRepository;
         this.currentUser = currentUser;
         this.folderRepository = folderRepository;
         this.sharedLinkService = sharedLinkService;
         this.tagRepository = tagRepository;
+        this.ownedAuth = ownedAuth;
     }
-    // Helper methods
+    // Helper Specs
+    /* ---------------------------------------------------------------------------------------------------*/
     private Specification<Note> ownedActive(Long id, User user) {
         return Specification
                 .allOf(NoteSpecs.withId(id))
@@ -71,7 +77,7 @@ public class NoteService {
                 .allOf(NoteSpecs.belongsTo(user))
                 .and(NoteSpecs.notDeleted());
     }
-
+    /* ---------------------------------------------------------------------------------------------------*/
 
     // Business logic
     public NoteResponse create(Long folderId, String content, Authentication auth) {
@@ -94,8 +100,6 @@ public class NoteService {
 
     }
 
-
-
     public NoteResponse getById(Long id, Authentication auth) {
         User user = currentUser.get(auth);
 
@@ -103,13 +107,13 @@ public class NoteService {
         Note note = noteRepository.findOne(spec)
                 .orElseThrow(() -> new NotFoundException("Note not found"));
 
+        ownedAuth.authorize(OwnerAction.READ);
         return NoteResponse.fromEntity(note);
+
     }
 
     public List<NoteResponse> getByFolder(Long folderId, Authentication auth) {
         User user = currentUser.get(auth);
-
-
 
         Specification<Folder> folderSpec = Specification
                 .allOf(FolderSpecs.withId(folderId))
@@ -121,7 +125,7 @@ public class NoteService {
         Specification<Note> noteSpec = ownedActiveInFolder(folderId, user);
 
         List<Note> notes = noteRepository.findAll(noteSpec);
-
+        ownedAuth.authorize(OwnerAction.READ);
         return notes.stream()
                 .map(NoteResponse::fromEntity)
                 .toList();
@@ -131,7 +135,7 @@ public class NoteService {
     // Refactor later to use specifications
     public List<NoteResponse> getMyFilteredNotes(Authentication auth) {
         User user = currentUser.get(auth);
-
+        ownedAuth.authorize(OwnerAction.READ);
         return noteRepository.findByOwner(user)
                 .stream()
                 .map(NoteResponse::fromEntity)
@@ -141,13 +145,12 @@ public class NoteService {
     public NoteResponse update(Long id, String content, Authentication auth) {
         User user = currentUser.get(auth);
 
-
-
         Specification<Note> spec = ownedActive(id,user);
 
         Note note = noteRepository.findOne(spec)
                 .orElseThrow(() -> new NotFoundException("Note not found"));
 
+        ownedAuth.authorize(OwnerAction.UPDATE);
 
         note.setContent(content);
         note.setUpdatedAt(Instant.now());
@@ -164,7 +167,7 @@ public class NoteService {
 
         Note note = noteRepository.findOne(spec)
                 .orElseThrow(() -> new NotFoundException("Note not found"));
-
+        ownedAuth.authorize(OwnerAction.DELETE);
         note.setDeletedAt(Instant.now());
         noteRepository.save(note);
     }
@@ -179,6 +182,8 @@ public class NoteService {
 
         Note note = noteRepository.findOne(spec)
                 .orElseThrow(() -> new NotFoundException("Note not found"));
+
+        ownedAuth.authorize(OwnerAction.SHARE);
 
         note.setVisibility(Visibility.SHARED_LINK);
         noteRepository.save(note);
@@ -217,8 +222,8 @@ public class NoteService {
         }
 
         Page<Note> notes = noteRepository.findAll(spec, pageable);
-        var content = notes.map(NoteResponse::fromEntity).toList()
-                ;
+        ownedAuth.authorize(OwnerAction.READ);
+        var content = notes.map(NoteResponse::fromEntity).toList();
 
         return new PageResponse<NoteResponse>(
                 content,
@@ -236,7 +241,7 @@ public class NoteService {
         Specification<Note> spec = ownedActive(noteId, user);
         Note note = noteRepository.findOne(spec)
                 .orElseThrow(() -> new NotFoundException("Note not found"));
-
+        ownedAuth.authorize(OwnerAction.UPDATE);
         // Normalization
         Set<Tag> tagSet = names.stream()
                 .map(n -> tagRepository.findByName(n).orElseGet(() -> tagRepository.save(new Tag(n))))
@@ -256,7 +261,7 @@ public class NoteService {
         Specification<Note> spec = ownedActive(noteId, user);
         Note note = noteRepository.findOne(spec)
                 .orElseThrow(() -> new NotFoundException("Note not found"));
-
+        ownedAuth.authorize(OwnerAction.UPDATE);
         tagRepository.findByName(name).ifPresent(t -> note.getTags().remove(t));
         note.setUpdatedAt(Instant.now());
         noteRepository.save(note);
@@ -271,7 +276,7 @@ public class NoteService {
 
         Note note = noteRepository.findOne(spec)
                 .orElseThrow(() -> new NotFoundException("Note not found"));
-
+        ownedAuth.authorize(OwnerAction.UPDATE);
         note.setDeletedAt(null);
         note.setUpdatedAt(Instant.now());
         noteRepository.save(note);
