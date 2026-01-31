@@ -9,9 +9,11 @@ import org.springframework.stereotype.Component;
 public class OwnerAuthorization {
 
     public void authorize(OwnerAction action) {
-
-        // IMPORTANT:
-        // For now, ownership implies all actions are allowed.
-        // We are making power explicit, not changing behavior.
+        switch (action) {
+            case READ, CREATE, UPDATE, DELETE, SHARE -> {
+                // allowed for now
+            }
+            default -> throw new ForbiddenException("Action not allowed");
+        }
     }
 }
