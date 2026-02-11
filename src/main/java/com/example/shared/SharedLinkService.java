@@ -3,32 +3,33 @@ package com.example.shared;
 import com.example.exceptions.ForbiddenException;
 import com.example.exceptions.NotFoundException;
 import com.example.note.Note;
+import com.example.note.NoteRepository;
 import com.example.note.NoteResponse;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
 @Service
 public class SharedLinkService {
 
-    private final SharedLinkRepository repository;
-
-    public SharedLinkService(SharedLinkRepository repository) {
-        this.repository = repository;
+    private final SharedLinkRepository sharedLinkRepository;
+    private final NoteRepository noteRepository;
+    public SharedLinkService(SharedLinkRepository repository, NoteRepository noteRepository) {
+        this.sharedLinkRepository = repository;
+        this.noteRepository = noteRepository;
     }
 
     public SharedLink create(Note note, Set<SharedAction> actions, Instant expiresAt) {
         String token = UUID.randomUUID().toString();
         SharedLink link = new SharedLink(token, note, actions, expiresAt);
-        return repository.save(link);
+        return sharedLinkRepository.save(link);
     }
 
     public SharedLink validate(String token, SharedAction action) {
-        SharedLink link = repository.findByToken(token)
+        SharedLink link = sharedLinkRepository.findByToken(token)
                 .orElseThrow(() -> new NotFoundException("Invalid link"));
 
         if (link.getRevokedAt() != null) {
@@ -52,7 +53,7 @@ public class SharedLinkService {
     }
 
     public void revoke(String token) {
-        SharedLink link = repository.findByToken(token)
+        SharedLink link = sharedLinkRepository.findByToken(token)
                 .orElseThrow(() -> new NotFoundException("Invalid link"));
 
         if (link.getRevokedAt() != null) {
@@ -60,7 +61,7 @@ public class SharedLinkService {
         }
 
         link.revoke(Instant.now());
-        repository.save(link);
+        sharedLinkRepository.save(link);
     }
 
     public NoteResponse getNote(String token) {
@@ -78,6 +79,7 @@ public class SharedLinkService {
             note.setContent(request.content());
             note.setUpdatedAt(Instant.now());
         }
+        note = noteRepository.save(note);
 
         return NoteResponse.fromEntity(note);
     }

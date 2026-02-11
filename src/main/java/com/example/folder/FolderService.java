@@ -119,6 +119,7 @@ public class FolderService {
             note.setUpdatedAt(now);
         }
 
+        noteRepository.saveAll(notes);
         folderRepository.save(folder);
     }
 
@@ -147,7 +148,7 @@ public class FolderService {
             note.setDeletedAt(null);
             note.setUpdatedAt(now);
         }
-
+        noteRepository.saveAll(notes);
         folderRepository.save(folder);
     }
 }
