@@ -12,7 +12,7 @@ public class Tag {
     private String name;
 
     protected Tag() {}
-    public Tag(String name) { this.name = name; }
+    public Tag(String name) { this.name = name.trim().toLowerCase(); ; }
 
     public String getName() { return name; }
     public Long getId() { return id; }
