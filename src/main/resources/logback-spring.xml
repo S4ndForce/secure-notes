@@ -8,6 +8,12 @@
         </encoder>
     </appender>
 
+    <appender name="JSON_JOBS" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>{"ts":"%d{ISO8601}","level":"%p","logger":"JOBS","msg":"%replace(%m){'\n',' '}","traceId":"%X{traceId}"}%n</pattern>
+        </encoder>
+    </appender>
+
     <!-- Normal colored pattern for all other logs -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -15,11 +21,16 @@
         </encoder>
     </appender>
 
-    <!-- REQUEST logger uses JSON -->
     <logger name="REQUEST" level="INFO" additivity="false">
         <appender-ref ref="JSON_REQUEST"/>
     </logger>
+    <logger name="JOBS" level="INFO" additivity="false">
+        <appender-ref ref="JSON_JOBS"/>
+    </logger>
 
+    <!-- Noise reducers -->
+    <logger name="org.springframework" level="WARN"/>
+    <logger name="org.hibernate" level="WARN"/>
     <!-- Everything else uses normal console -->
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
