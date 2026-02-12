@@ -30,7 +30,6 @@ public class SharedLinkCleanupJob {
         this.executor = executor;
     }
 
-    @Transactional
     @Scheduled(fixedDelay = 60_000)
     public void cleanupExpiredWrapper() {
         try {
@@ -41,10 +40,4 @@ public class SharedLinkCleanupJob {
     }
 
 
-
-    @Recover
-    public void recover(Exception e) {
-        log.error("SharedLink cleanup FAILED after retries", e);
-         // add alert/metric sending later
-    }
 }
