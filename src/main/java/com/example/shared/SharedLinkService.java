@@ -6,6 +6,7 @@ import com.example.note.Note;
 import com.example.note.NoteRepository;
 import com.example.note.NoteResponse;
 import com.example.note.NoteService;
+import com.example.user.User;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,33 +27,43 @@ public class SharedLinkService {
         this.noteRepository = noteRepository;
     }
 
-    public SharedLink create(Note note, Set<SharedAction> actions, Instant expiresAt) {
+    public SharedLink create(Note note, Set<SharedAction> actions, User creator, Instant expiresAt) {
         String token = UUID.randomUUID().toString();
-        SharedLink link = new SharedLink(token, note, actions, expiresAt);
+        SharedLink link = new SharedLink(token, note, creator, actions, expiresAt);
         return sharedLinkRepository.save(link);
     }
 
     public SharedLink validate(String token, SharedAction action) {
-        SharedLink link = sharedLinkRepository.findByToken(token)
+        SharedLink link=  sharedLinkRepository.findByToken(token)
                 .orElseThrow(() -> new NotFoundException("Invalid link"));
 
         if (link.getRevokedAt() != null) {
+            log.warn("Attempt to use revoked link: creator={}, id={}, time={}",
+                    link.getCreator().getEmail(), link.getId(), Instant.now());
             throw new ForbiddenException("Link revoked");
         }
 
         Instant expiresAt = link.getExpiresAt();
         if (expiresAt != null && expiresAt.isBefore(Instant.now())) {
+            log.warn("Attempt to use expired link: creator={}, id={}, time={}",
+                    link.getCreator().getEmail(), link.getId(), Instant.now());
             throw new ForbiddenException("Link expired");
         }
 
         if (!link.getActions().contains(action)) {
+            log.warn("Attempt to use forbidden action link: creator={}, id={}, time={}",
+                    link.getCreator().getEmail(), link.getId(), Instant.now());
             throw new ForbiddenException("Action not allowed");
         }
 
         if (link.getNote().getDeletedAt() != null) {
+            log.warn("Attempt to access deleted link: creator={}, id={}, time={}",
+                    link.getCreator().getEmail(), link.getId(), Instant.now());
             throw new ForbiddenException("Note deleted");
         }
         if (link.getNote().getFolder().getDeletedAt() != null) {
+            log.warn("Attempt to access deleted link: creator={}, id={}, time={}",
+                    link.getCreator().getEmail(), link.getId(), Instant.now());
             throw new ForbiddenException("Note's folder deleted");
         }
 
@@ -73,7 +84,8 @@ public class SharedLinkService {
 
     public NoteResponse getNote(String token) {
         SharedLink link = validate(token, SharedAction.READ);
-        log.info("Shared link accessed token={} time={}", token, Instant.now());
+        log.warn("Shared link accessed: creator={}, id={}, time={}",
+                link.getCreator().getEmail(), link.getId(), Instant.now());
         return NoteResponse.fromEntity(link.getNote());
     }
 
@@ -83,13 +95,13 @@ public class SharedLinkService {
         SharedLink link = validate(token, SharedAction.UPDATE);
         Note note = link.getNote();
 
-
         if (request.content() != null) {
             note.setContent(request.content());
             note.setUpdatedAt(Instant.now());
         }
         noteRepository.save(note);
-        log.info("Shared link updated token={} time={}", token, Instant.now());
+        log.warn("Shared link updated: creator={}, id={}, time={}",
+                link.getCreator().getEmail(), link.getId(), Instant.now());
         return NoteResponse.fromEntity(note);
     }
 

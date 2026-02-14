@@ -1,6 +1,7 @@
 package com.example.shared;
 
 import com.example.note.Note;
+import com.example.user.User;
 import jakarta.persistence.*;
 
 import java.time.Instant;
@@ -19,6 +20,9 @@ public class SharedLink {
     @ManyToOne(optional = false)
     private Note note;
 
+    @ManyToOne(optional = false)
+    private User creator;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "shared_link_actions", joinColumns = @JoinColumn(name = "shared_link_id"))
     @Enumerated(EnumType.STRING)
@@ -29,12 +33,15 @@ public class SharedLink {
 
     private Instant revokedAt;
 
+
+
     protected SharedLink() {
     }
 
-    public SharedLink(String token, Note note, Set<SharedAction> actions, Instant expiresAt) {
+    public SharedLink(String token, Note note, User user, Set<SharedAction> actions, Instant expiresAt) {
         this.token = token;
         this.note = note;
+        this.creator = user;
         this.actions = actions;
         this.expiresAt = expiresAt;
     }
@@ -61,6 +68,14 @@ public class SharedLink {
 
     public Instant getRevokedAt() {
         return revokedAt;
+    }
+
+    public User getCreator() {
+        return creator;
+    }
+
+    public void setCreator(User creator) {
+        this.creator = creator;
     }
 
     public void revoke(Instant revokedAt) {

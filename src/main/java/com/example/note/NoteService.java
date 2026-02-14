@@ -210,6 +210,7 @@ public class NoteService {
         SharedLink link = sharedLinkService.create(
                 note,
                 Set.of(SharedAction.READ),
+                user,
                 Instant.now().plusSeconds(60) // add configurability later
         );
 

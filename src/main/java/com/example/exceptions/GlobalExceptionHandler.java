@@ -35,4 +35,8 @@ public class GlobalExceptionHandler {
                 "Internal server error"
         );
     }
+
+    /*TODO: exception handling for logins:
+    any login error such as registering existing user and wrong password returns 500
+     */
 }
