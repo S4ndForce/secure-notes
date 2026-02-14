@@ -30,9 +30,10 @@ public class SharedLinkService {
     public SharedLink create(Note note, Set<SharedAction> actions, User creator, Instant expiresAt) {
         String token = UUID.randomUUID().toString();
         SharedLink link = new SharedLink(token, note, creator, actions, expiresAt);
+        sharedLinkRepository.save(link);
         log.info("Shared link created: creator={}, id={}, time={}",
                 link.getCreator().getEmail(), link.getId(), Instant.now());
-        return sharedLinkRepository.save(link);
+        return link;
     }
 
     public SharedLink validate(String token, SharedAction action) {
@@ -86,7 +87,7 @@ public class SharedLinkService {
 
     public NoteResponse getNote(String token) {
         SharedLink link = validate(token, SharedAction.READ);
-        log.warn("Shared link accessed: creator={}, id={}, time={}",
+        log.info("Shared link accessed: creator={}, id={}, time={}",
                 link.getCreator().getEmail(), link.getId(), Instant.now());
         return NoteResponse.fromEntity(link.getNote());
     }
@@ -102,7 +103,7 @@ public class SharedLinkService {
             note.setUpdatedAt(Instant.now());
         }
         noteRepository.save(note);
-        log.warn("Shared link updated: creator={}, id={}, time={}",
+        log.info("Shared link updated: creator={}, id={}, time={}",
                 link.getCreator().getEmail(), link.getId(), Instant.now());
         return NoteResponse.fromEntity(note);
     }

@@ -193,7 +193,7 @@ public class NoteService {
 
 
 
-    public String createSharedLink(Long id, Authentication auth) {
+    public String createSharedLink(Long id, Long expiration, Authentication auth) {
         User user = currentUser.get(auth);
 
 
@@ -211,7 +211,7 @@ public class NoteService {
                 note,
                 Set.of(SharedAction.READ),
                 user,
-                Instant.now().plusSeconds(60) // add configurability later
+                Instant.now().plusSeconds(expiration) // add configurability later
         );
 
         return link.getToken();

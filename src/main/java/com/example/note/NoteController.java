@@ -68,8 +68,8 @@ public class NoteController {
     }
 
     @PostMapping("/{id}/share")
-    public String share(@PathVariable Long id, Authentication auth) {
-        return noteService.createSharedLink(id, auth);
+    public String share(@PathVariable Long id, @RequestParam Long expiration, Authentication auth) {
+        return noteService.createSharedLink(id, expiration, auth);
     }
 
     @GetMapping("/search")
