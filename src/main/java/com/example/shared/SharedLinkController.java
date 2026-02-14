@@ -12,6 +12,7 @@ public class SharedLinkController {
     private final SharedLinkService sharedLinkService;
 
     public SharedLinkController(SharedLinkService sharedLinkService) {
+
         this.sharedLinkService = sharedLinkService;
     }
 

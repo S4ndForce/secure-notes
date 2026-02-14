@@ -4,12 +4,7 @@
     <appender name="JSON_APP" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
             <pattern>
-                {"ts":"%d{ISO8601}",
-                "level":"%p",
-                "logger":"%c{1}",
-                "msg":"%replace(%m){'\n',''}",
-                "traceId":"%X{traceId}",
-                "user":"%X{user}"}%n
+                {"ts":"%d{ISO8601}", "level":"%p", "logger":"%c{1}", "msg":"%replace(%m){'\n',''}", "traceId":"%X{traceId}", "user":"%X{user}"}%n
             </pattern>
         </encoder>
     </appender>
@@ -17,6 +12,7 @@
     <!-- Noise reducers -->
     <logger name="org.springframework" level="WARN"/>
     <logger name="org.hibernate" level="WARN"/>
+    <logger name="com.zaxxer.hikari" level="WARN"/>
 
     <!-- Root logger: everything goes through JSON -->
     <root level="INFO">

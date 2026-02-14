@@ -5,7 +5,10 @@ import com.example.exceptions.NotFoundException;
 import com.example.note.Note;
 import com.example.note.NoteRepository;
 import com.example.note.NoteResponse;
+import com.example.note.NoteService;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -17,6 +20,7 @@ public class SharedLinkService {
 
     private final SharedLinkRepository sharedLinkRepository;
     private final NoteRepository noteRepository;
+    private static final Logger log = LoggerFactory.getLogger(SharedLinkService.class);
     public SharedLinkService(SharedLinkRepository repository, NoteRepository noteRepository) {
         this.sharedLinkRepository = repository;
         this.noteRepository = noteRepository;
@@ -69,9 +73,11 @@ public class SharedLinkService {
 
     public NoteResponse getNote(String token) {
         SharedLink link = validate(token, SharedAction.READ);
+        log.info("Shared link accessed token={} time={}", token, Instant.now());
         return NoteResponse.fromEntity(link.getNote());
     }
 
+    //TODO: make append only
     @Transactional
     public NoteResponse updateViaSharedLink(String token, SharedLinkUpdateRequest request) {
         SharedLink link = validate(token, SharedAction.UPDATE);
@@ -82,8 +88,10 @@ public class SharedLinkService {
             note.setContent(request.content());
             note.setUpdatedAt(Instant.now());
         }
-        note = noteRepository.save(note);
-
+        noteRepository.save(note);
+        log.info("Shared link updated token={} time={}", token, Instant.now());
         return NoteResponse.fromEntity(note);
     }
+
+    //TODO: option to view all shared links owned by user
 }

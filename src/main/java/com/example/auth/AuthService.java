@@ -46,20 +46,25 @@ public class AuthService {
         );
 
         userRepository.save(user);
+        log.info("User registered: email={}", request.getEmail());
     }
 
     public void logout(String jti) {
         revokedTokenRepository.save(
                 new RevokedToken(jti, Instant.now())
         );
+        log.info("Logout successful: jti={}", jti);
     }
 
     public String login(LoginRequest request){
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        request.email, request.password
+                        request.getEmail(), request.getPassword()
                 )
         );
+        log.info("Login successful: email={}", request.getEmail());
         return jwtUtil.generateToken(request.email);
     }
+    // create handling for logout exceptions
+
 }

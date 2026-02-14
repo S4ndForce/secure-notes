@@ -15,6 +15,8 @@ import com.example.tag.TagRepository;
 import com.example.user.User;
 import com.example.auth.CurrentUser;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -36,6 +38,7 @@ public class NoteService {
     private final SharedLinkService sharedLinkService;
     private final TagRepository tagRepository;
     private final OwnerAuthorization ownedAuth;
+    private static final Logger log = LoggerFactory.getLogger(NoteService.class);
 
     public NoteService(NoteRepository noteRepository,
                        CurrentUser currentUser,
@@ -210,10 +213,12 @@ public class NoteService {
                 Instant.now().plusSeconds(60) // add configurability later
         );
 
+        log.debug("Creating shared link for note={} user={}", id, user.getEmail());
+
         return link.getToken();
     }
 
-    //
+
     public PageResponse<NoteResponse> searchMyNotes(
             String text,
             Long folderId,
