@@ -17,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -47,11 +48,11 @@ class OwnershipIntegrationTest {
     @BeforeEach
     void setup() {
         userA = userRepository.save(
-                new User("userA", passwordEncoder.encode("password"), Role.USER)
+                new User("a@test.com", passwordEncoder.encode("password"), Role.USER)
         );
 
         userB = userRepository.save(
-                new User("userB", passwordEncoder.encode("password"), Role.USER)
+                new User("b@test.com", passwordEncoder.encode("password"), Role.USER)
         );
 
         Folder folder = folderRepository.save(new Folder("Default", userA));
@@ -64,8 +65,31 @@ class OwnershipIntegrationTest {
     void userCannotAccessAnotherUsersNote() throws Exception {
 
         mockMvc.perform(get("/notes/{id}", note.getId())
-                        .with(user("userB").password("password").roles("USER")))
+                        .with(user("b@test.com").password("password").roles("USER")))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    void ownerCanAccessOwnNote() throws Exception {
+
+        mockMvc.perform(get("/notes/{id}", note.getId())
+                        .with(user("a@test.com").password("password").roles("USER")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void ownerCannotAccessSoftDeletedNote() throws Exception {
+
+        // soft delete first
+        mockMvc.perform(delete("/notes/{id}", note.getId())
+                        .with(user("a@test.com").password("password").roles("USER")))
+                .andExpect(status().isNoContent());
+
+        // try to retrieve delete note
+        mockMvc.perform(get("/notes/{id}", note.getId())
+                        .with(user("a@test.com").password("password").roles("USER")))
+                .andExpect(status().isNotFound());
+    }
+
 }
 
