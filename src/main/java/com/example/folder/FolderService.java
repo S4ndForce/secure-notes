@@ -123,6 +123,7 @@ public class FolderService {
 
         for (Note note : notes) {
             note.setDeletedAt(now);
+            note.setCascadeDeletedAt(now);
             note.setUpdatedAt(now);
         }
 
@@ -148,17 +149,14 @@ public class FolderService {
 
         List<Note> notes = noteRepository.findAll(
                 NoteSpecs.inFolder(folder.getId())
-                        .and(NoteSpecs.isDeleted())
+                        .and(NoteSpecs.isCascadeDeleted())
         );
 
         for (Note note : notes) {
-            // One second of tolerance
-            if (note.getDeletedAt() != null &&
-                    Math.abs(note.getDeletedAt().toEpochMilli() - folder.getDeletedAt().toEpochMilli()) < 1000) {
                 note.setDeletedAt(null);
+                note.setCascadeDeletedAt(null);
                 note.setUpdatedAt(now);
             }
-        }
         folder.setDeletedAt(null);
         noteRepository.saveAll(notes);
         folderRepository.save(folder);

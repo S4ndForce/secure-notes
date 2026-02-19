@@ -47,6 +47,14 @@ public class NoteSpecs {
         return (root, query, cb) ->
                 cb.isNotNull(root.get("deletedAt"));
     }
+    public static Specification<Note> isNotCascadeDeleted() {
+        return (root, query, cb) ->
+                cb.isNull(root.get("cascadeDeletedAt"));
+    }
+    public static Specification<Note> isCascadeDeleted() {
+        return (root, query, cb) ->
+                cb.isNotNull(root.get("cascadeDeletedAt"));
+    }
 
     public static Specification<Note> folderNotDeleted() {
         return (root, query, cb) ->

@@ -18,15 +18,17 @@ public class Note extends BaseEntity {
     private Long id;
 
     private Instant deletedAt;
-
+    private Instant cascadeDeletedAt;
 
     private String content;
+
 
     @ManyToOne(optional = false)
     private User owner;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private Folder folder;
+
 
     @ManyToMany
     @JoinTable(
@@ -52,6 +54,7 @@ public class Note extends BaseEntity {
         this.content = content;
         this.owner = owner;
     }
+
 
     public User getOwner() {
         return owner;
@@ -121,5 +124,13 @@ public class Note extends BaseEntity {
 
     public void onUpdate() {
         this.updatedAt = Instant.now();
+    }
+
+    public Instant isCascadeDeleted() {
+        return cascadeDeletedAt;
+    }
+
+    public void setCascadeDeletedAt(Instant cascadeDeletedAt) {
+        this.cascadeDeletedAt = cascadeDeletedAt;
     }
 }
