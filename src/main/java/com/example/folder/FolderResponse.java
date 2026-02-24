@@ -21,6 +21,12 @@ public class FolderResponse {
     public Long getId() { return id; }
     public String getName() { return name; }
     public String getUserName() { return userName; }
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
 
     public static FolderResponse fromEntity(Folder folder) {
         return new FolderResponse(
